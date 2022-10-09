@@ -1,8 +1,16 @@
+.container {
+    width: 100vw;
+    overflow-y: scroll;
+}
+
 .photos {
     display: grid;
     grid-template-columns: repeat(6, 1fr) minmax(0, 1fr);
     grid-gap: 0.25vw;
     grid-auto-rows: 1fr;
+    margin:auto;
+    width: fit-content;
+    margin-bottom: 2vh;
 }
 
 .figure {
