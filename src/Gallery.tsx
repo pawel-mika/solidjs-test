@@ -11,7 +11,7 @@ const Gallery: Component = () => {
     const [photos, setPhotos] = createSignal<Photo[]>([]);
     const [page, setPage] = createSignal<number>(0);
 
-    const fetchPhotos = async (_page: string, _limit: string = '20') => {
+    const fetchPhotos = async (_page: string, _limit: string = '32') => {
         const params = new URLSearchParams({_page, _limit});
         const res = await fetch(`https://jsonplaceholder.typicode.com/photos?`  + params);
         const respJson = await res.json();
@@ -29,7 +29,7 @@ const Gallery: Component = () => {
 
     onMount(async () => {
         fetchPhotos(page() as unknown as string);
-        handleScroll(null);
+        handleScroll({} as Event);
     });
 
     return (<div class={styles.container} onScroll={handleScroll} ref={container}>

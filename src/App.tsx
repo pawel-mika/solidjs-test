@@ -40,6 +40,7 @@ const App: Component = () => {
         {/* <SelectMediaDevice onMediaDeviceSelected={onMediaDeviceSelected}></SelectMediaDevice> */}
         {/* <Analyzer mediaDevice={mediaDevice()}></Analyzer> */}
       </p>
+      <footer class={styles.footer}>e</footer>
     </div>
   );
 };
