@@ -2,6 +2,7 @@
     width: 100vw;
     overflow-y: scroll;
     height: 100%;
+    position: relative;
 }
 
 .photos {
@@ -9,7 +10,7 @@
     grid-template-columns: repeat(6, 1fr) minmax(0, 1fr);
     grid-gap: 0.25vw;
     grid-auto-rows: 1fr;
-    margin:auto;
+    margin: auto;
     width: fit-content;
     margin-bottom: 2vh;
 }
@@ -27,12 +28,12 @@
     transform: scale(1);
     transition: 0.2s cubic-bezier(0.5, 0, 0, 1.25);
     filter: sepia(0.5);
-    background: linear-gradient(135deg, white, rgba(64,64,64,1) 15%) border-box;
+    background: linear-gradient(135deg, white, rgba(64, 64, 64, 1) 15%) border-box;
     border: 0.01vw solid transparent;
 
     &:hover {
         cursor: pointer;
-        background: linear-gradient(135deg, white, rgba(64,64,64,0.5) 50%) border-box;
+        background: linear-gradient(135deg, white, rgba(64, 64, 64, 0.5) 30%) border-box;
         transform: scale(1.2);
         z-index: 1;
         filter: none;
@@ -55,6 +56,55 @@
         right: 0;
         left: 0;
         bottom: 0;
-        background-image: linear-gradient(180deg, rgba(255,255,255,0), rgba(64,64,64,1));
+        background-image: linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(64, 64, 64, 1));
     }
+}
+
+.loader {
+    position: fixed;
+    background-color: rgba(64, 64, 64, 0.5);
+    width: 100%;
+    height: -webkit-fill-available;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: progress;
+
+    .ring {
+        display: inline-block;
+        width: 80px;
+        height: 80px;
+    }
+
+    .ring:after {
+        content: " ";
+        display: block;
+        width: 64px;
+        height: 64px;
+        margin: 8px;
+        border-radius: 50%;
+        border: 6px solid #fff;
+        border-color: #fff transparent #fff transparent;
+        animation: logo-spin infinite 1.5s;
+    }
+
+    @keyframes logo-spin {
+        0% {
+          transform: rotate(0) scale(1);
+          filter: opacity(0.33) blur(1px);
+        }
+        33% {
+          transform: rotate(180deg) scale(2);
+          filter: opacity(1) blur(0px);
+        }
+        66% {
+            transform: rotate(360deg) scale(1);
+            filter: opacity(0.33) blur(1px);
+        }
+        100% {
+            transform: rotate(360deg) scale(1) rotatey(180deg);
+            filter: opacity(0.33) blur(1px);
+        }
+      }
 }

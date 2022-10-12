@@ -1,0 +1,16 @@
+@keyframes spin-and-blur-out {
+    0% {
+        transform: rotate(0) scale(0);
+        filter: opacity(0) blur(0px);
+    }
+
+    50% {
+        transform: rotate(360deg) scale(2);
+        filter: opacity(1) blur(1px);
+    }
+
+    100% {
+        transform: rotate(720deg) scale(4);
+        filter: opacity(0) blur(4px);
+    }
+}

@@ -1,4 +1,5 @@
-import { Component, createEffect, createSignal, For, mergeProps, onMount } from "solid-js";
+import { Component, createEffect, createSignal, For, mergeProps, onMount, Show } from "solid-js";
+import { style } from "solid-js/web";
 import styles from './Gallery.module.scss';
 
 export interface Photo {
@@ -12,7 +13,7 @@ interface GalleryProperties {
 }
 
 const Gallery: Component<GalleryProperties> = (props: GalleryProperties) => {
-    let container: HTMLDivElement;
+    let container: HTMLDivElement | undefined;
     const [isLoading, setLoading] = createSignal<boolean>(false);
     const [photos, setPhotos] = createSignal<Photo[]>([]);
     const [page, setPage] = createSignal<number>(0);
@@ -23,7 +24,7 @@ const Gallery: Component<GalleryProperties> = (props: GalleryProperties) => {
 
     createEffect(() => props.isLoading(isLoading()));
 
-    const fetchPhotos = async (_page: string, _limit: string = '32') => {
+    const fetchPhotos = async (_page: string, _limit: string = '100') => {
         setLoading(true);
         const params = new URLSearchParams({_page, _limit});
         const res = await fetch(`https://jsonplaceholder.typicode.com/photos?`  + params);
@@ -35,7 +36,7 @@ const Gallery: Component<GalleryProperties> = (props: GalleryProperties) => {
     }
 
     const handleScroll = (e: Event) => {
-        if (container.scrollTop + container.clientHeight >= container.scrollHeight) {
+        if (container!.scrollTop + container!.clientHeight >= container!.scrollHeight) {
             setPage(page() + 1)
             fetchPhotos(page() as unknown as string);
           }
@@ -46,10 +47,15 @@ const Gallery: Component<GalleryProperties> = (props: GalleryProperties) => {
         handleScroll({} as Event);
     });
 
-    return (<div class={styles.container} onScroll={handleScroll} ref={container}>
+    return (<div class={styles.container} onScroll={handleScroll} ref={container!}>
+        <Show when={isLoading()}>
+            <div class={styles.loader}>
+                <div class={styles.ring}></div>
+            </div>
+        </Show>
         <h2>Photo album</h2>
         <div class={styles.photos}>
-            <For each={photos()} fallback={<p>Loading...</p>}>{(photo) =>
+            <For each={photos()} fallback={<p>...</p>}>{(photo) =>
                 <figure class={styles.figure}>
                     <img src={photo.thumbnailUrl} alt={photo.title} />
                     <figcaption>{photo.title}</figcaption>
