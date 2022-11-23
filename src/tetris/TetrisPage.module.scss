@@ -1,0 +1,23 @@
+.tetris {
+    display: grid;
+    grid-gap: 0vw;
+    grid-auto-rows: 1fr;
+    margin: auto;
+    width: fit-content;
+    background: linear-gradient(0deg, gray, #3f3f3f 100%) border-box;;
+}
+
+.pixel {
+    display: block;
+    border: 1px solid gray;
+    min-width: 32px;
+    min-height: 32px;
+
+    &.p0 {
+        background-color: transparent;
+    }
+
+    &.p1 {
+        background-color: blueviolet;
+    }
+}

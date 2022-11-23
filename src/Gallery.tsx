@@ -1,5 +1,4 @@
 import { Component, createEffect, createSignal, For, mergeProps, onMount, Show } from "solid-js";
-import { style } from "solid-js/web";
 import styles from './Gallery.module.scss';
 
 export interface Photo {
@@ -30,7 +29,7 @@ const Gallery: Component<GalleryProperties> = (props: GalleryProperties) => {
         const res = await fetch(`https://jsonplaceholder.typicode.com/photos?`  + params);
         const respJson = await res.json();
         const newPhotos = (respJson as Photo[])
-            .map((p) => ({ ...p, thumbnailUrl: `https://source.unsplash.com/random/320x240?q=${Number.parseInt(1000000 * Math.random())}` }));
+            .map((p) => ({ ...p, thumbnailUrl: `https://source.unsplash.com/random/320x240/?q=${(Math.random() + 1).toString(36).substring(2)}` }));
         setPhotos([...photos(), ...newPhotos]);
         setLoading(false);
     }
@@ -40,6 +39,10 @@ const Gallery: Component<GalleryProperties> = (props: GalleryProperties) => {
             setPage(page() + 1)
             fetchPhotos(page() as unknown as string);
           }
+    }
+
+    const handleClick = (p: Photo) => {
+        console.log(p);
     }
 
     onMount(async () => {
@@ -56,8 +59,8 @@ const Gallery: Component<GalleryProperties> = (props: GalleryProperties) => {
         <h2>Photo album</h2>
         <div class={styles.photos}>
             <For each={photos()} fallback={<p>...</p>}>{(photo) =>
-                <figure class={styles.figure}>
-                    <img src={photo.thumbnailUrl} alt={photo.title} />
+                <figure class={styles.figure} onClick={(e) => handleClick(photo)}>
+                    <img src={photo.thumbnailUrl} alt={photo.title}/>
                     <figcaption>{photo.title}</figcaption>
                 </figure>
             }</For>

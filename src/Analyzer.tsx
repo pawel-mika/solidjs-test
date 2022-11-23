@@ -88,7 +88,7 @@ const Analyzer: Component<AnalyzerProps> = (props: AnalyzerProps) => {
     });
 
     return (
-        <canvas ref={canvas} class={styles.analyzer}></canvas>
+        <canvas ref={canvas!} class={styles.analyzer}></canvas>
     )
 }
 
