@@ -61,12 +61,6 @@ const createBoard = (): Board => {
         isPaused: false
     };
 
-    // const tile = {
-    //     tile: convertBlock(BlockFactory.getRandomBlock()),
-    //     top: 0,
-    //     left: 0,
-    // }
-
     let tile = createNewTile(convertBlock(BlockFactory.getRandomBlock()));
 
     const createRow = (width = BOARD_WIDTH) => ({ tiles: Array<Pixel>(width).fill({ type: PixelType.MOVING }) });
@@ -87,14 +81,14 @@ const createBoard = (): Board => {
                 tile.top+=1;
                 break;
             case 'ArrowRight':
-                tile.left = tile.left + tile.width <= BOARD_WIDTH
+                tile.left = tile.left + tile.width < BOARD_WIDTH
                     ? tile.left + 1 : BOARD_WIDTH - tile.width;
                 break;
             case 'ArrowLeft':
                 tile.left = tile.left > 0 ? tile.left - 1 : 0;
                 break;
             case 'ArrowUp': 
-                // tile.block = BlockFactory.rotateBlockCW(tile.block);
+                tile.block = BlockFactory.rotateBlockCW(tile.block) as TBlock;
                 break
             default:
                 break;
@@ -105,6 +99,8 @@ const createBoard = (): Board => {
         if(tile.top + tile.height > BOARD_HEIGHT) {
             tile = createNewTile(convertBlock(BlockFactory.getRandomBlock()));
         }
+
+        setActualScreen(getActualScreen());
     }
 
     const mainLoop = () => {
@@ -133,7 +129,6 @@ const createBoard = (): Board => {
                     (pixel, pindex) => {
                         const ty = rowIndex - tile.top;
                         const tx = pindex - tile.left;
-                        // console.log(currentTile.tile[ty]?.[tx]);
                         const npixel = tile.block[ty]?.[tx] || row.tiles[pindex];
                         return npixel;
                     });

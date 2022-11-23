@@ -25,7 +25,7 @@ const TetrisPage: Component = () => {
     return (
       <div class={appStyles.App}>
         <header class={appStyles.header}>
-          score: 0 | level (speed): 0 | hiscore: 0 | <b>Movement: Arrow keys</b>
+          ***WIP*** | score: 0 | level (speed): 0 | hiscore: 0 | <b>Movement: Arrow keys</b>
         </header>
         <div class={appStyles.content}>
             <div class={styles.tetris} style={{
