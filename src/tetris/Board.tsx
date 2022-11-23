@@ -141,6 +141,8 @@ const createBoard = (): Board => {
             });
     }
 
+    setActualScreen(getActualScreen());
+
     console.log(screen);
 
     return {
