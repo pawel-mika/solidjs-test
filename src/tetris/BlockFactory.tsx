@@ -28,16 +28,20 @@ class BlockFactory {
         return this.blocks[idx];
     }
 
-    public  rotateBlockCW(block: Array<Array<unknown>>) {
-        const newHeight = block.reduce((p, c) => p > c.length ? p : c.length, 0);
+    public getBlockWidth(block: Array<Array<unknown>>): number {
+        return block.reduce((p, c) => p > c.length ? p : c.length, 0);
+    }
+
+    public rotateBlockCW(block: Array<Array<unknown>>) {
+        const newHeight = this.getBlockWidth(block);
         const newWidth = block.length;
         return Array(newHeight).fill([]).map(
             (ry, iy) => Array(newWidth).fill([]).map(
                 (rx, ix) => block[ix][iy]).reverse().map(x => x ? x : 0));
     }
-    
-    public  rotateBlockCCW(block: Array<Array<unknown>>) {
-        const newHeight = block.reduce((p, c) => p > c.length ? p : c.length, 0);
+
+    public rotateBlockCCW(block: Array<Array<unknown>>) {
+        const newHeight = this.getBlockWidth(block);
         const newWidth = block.length;
         return Array(newHeight).fill([]).map(
             (ry, iy) => Array(newWidth).fill([]).map(

@@ -8,13 +8,15 @@ export enum PixelType {
     MOVING,
     REMOVING
 }
+
+type TBlock = Array<Array<Pixel>>;
 export interface Pixel {
     type: PixelType;
     style?: JSX.CSSProperties;
 }
 
 export interface Tile {
-    block: Array<Array<Pixel>>;
+    block: TBlock;
     top: number;
     left: number;
     width: number;
@@ -42,20 +44,30 @@ const createBoard = (): Board => {
     const BOARD_HEIGHT = 20;
     const TILE_SPEED = 1000;    // drop 1 pixel every 1000ms
 
-    const convertBlock = (block: Array<Array<number>>): Array<Array<Pixel>> => 
+    const convertBlock = (block: Array<Array<number>>): TBlock => 
         block.map((valArray) => valArray.map(val => val === 1 
             ? { type: PixelType.TAKEN } : { type: PixelType.EMPTY }));
+
+    const createNewTile = (block: TBlock): Tile => ({
+        block,
+        top: 0,
+        left: 0,
+        width: BlockFactory.getBlockWidth(block),
+        height: block.length
+    });
 
     const gameState = {
         gameInterval: 0,
         isPaused: false
     };
 
-    const tile = {
-        tile: convertBlock(BlockFactory.getRandomBlock()),
-        top: 0,
-        left: 0,
-    }
+    // const tile = {
+    //     tile: convertBlock(BlockFactory.getRandomBlock()),
+    //     top: 0,
+    //     left: 0,
+    // }
+
+    let tile = createNewTile(convertBlock(BlockFactory.getRandomBlock()));
 
     const createRow = (width = BOARD_WIDTH) => ({ tiles: Array<Pixel>(width).fill({ type: PixelType.MOVING }) });
 
@@ -67,7 +79,7 @@ const createBoard = (): Board => {
 
     const onKeyDown = (e: KeyboardEvent) => {
         console.log(e);
-        tile.tile = convertBlock(BlockFactory.getRandomBlock());
+        // tile.tile = convertBlock(BlockFactory.getRandomBlock());
         setActualScreen(getActualScreen());
         console.log(actualScreen());
         switch(e.key) {
@@ -75,19 +87,28 @@ const createBoard = (): Board => {
                 tile.top+=1;
                 break;
             case 'ArrowRight':
-                tile.left = tile.left + tile.tile.length <= BOARD_WIDTH
-                    ? tile.left + 1 : BOARD_WIDTH - tile.tile.length;
+                tile.left = tile.left + tile.width <= BOARD_WIDTH
+                    ? tile.left + 1 : BOARD_WIDTH - tile.width;
                 break;
             case 'ArrowLeft':
                 tile.left = tile.left > 0 ? tile.left - 1 : 0;
                 break;
+            case 'ArrowUp': 
+                // tile.block = BlockFactory.rotateBlockCW(tile.block);
+                break
+            default:
+                break;
             }
 
-        console.log(`tile pos: `, tile.top, tile.left);
+        console.log(tile);
+
+        if(tile.top + tile.height > BOARD_HEIGHT) {
+            tile = createNewTile(convertBlock(BlockFactory.getRandomBlock()));
+        }
     }
 
     const mainLoop = () => {
-        const theTile = tile.tile;
+        const theTile = tile.block;
         const newTop = tile.top + 1;
         const newLeft = tile.left;
         for (let row = 0; row < theTile.length; row++) {
@@ -107,13 +128,13 @@ const createBoard = (): Board => {
 
     const getActualScreen = (): Array<Row> => {
         return screen.map(
-            (row, rindex) => {
+            (row, rowIndex) => {
                 const tiles = row.tiles.map(
                     (pixel, pindex) => {
-                        const ty = rindex - tile.top;
-                        const tx = pindex + tile.left;
+                        const ty = rowIndex - tile.top;
+                        const tx = pindex - tile.left;
                         // console.log(currentTile.tile[ty]?.[tx]);
-                        const npixel = tile.tile[ty]?.[tx] || row.tiles[tx];
+                        const npixel = tile.block[ty]?.[tx] || row.tiles[pindex];
                         return npixel;
                     });
                 return {...row, tiles};
