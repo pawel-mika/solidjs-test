@@ -4,15 +4,16 @@ import styles from './TetrisPage.module.scss';
 import createBoard, { Pixel, PixelType, Row } from "./Board";
 
 const TetrisPage: Component = () => {
-    const {width, height, screen, onKeyDown} = createBoard();
+    const {width, height, screen, onKeyDown, score} = createBoard();
 
     const renderPixel = (pixel: Pixel) => (<div classList={{
         [styles.pixel]: true, 
-        [styles.p1]: pixel.type === PixelType.TAKEN}} 
+        [styles.p1]: pixel.type === PixelType.TAKEN,
+        [styles.p3]: pixel.type === PixelType.REMOVING}} 
         style={pixel.style}>{pixel?.type}
       </div>)
 
-    const renderRow = (row: Row) => row.tiles.map((pixel) => renderPixel(pixel));
+    const renderRow = (row: Row) => row.pixels.map((pixel) => renderPixel(pixel));
 
     onMount(() => {
       document.addEventListener('keydown', onKeyDown);
@@ -25,7 +26,7 @@ const TetrisPage: Component = () => {
     return (
       <div class={appStyles.App}>
         <header class={appStyles.header}>
-          ***WIP*** | score: 0 | level (speed): 0 | hiscore: 0 | <b>Movement: Arrow keys</b>
+          ***WIP*** | score: {score} | level (speed): 0 | hiscore: 0 | <b>Movement: Arrow keys</b>
         </header>
         <div class={appStyles.content}>
             <div class={styles.tetris} style={{
