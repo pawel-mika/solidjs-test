@@ -4,7 +4,7 @@ import styles from './TetrisPage.module.scss';
 import createBoard, { Pixel, PixelType, Row } from "./Board";
 
 const TetrisPage: Component = () => {
-    const {width, height, screen, onKeyDown, score} = createBoard();
+    const {width, height, screen, onKeyDown, score, pause } = createBoard();
 
     const renderPixel = (pixel: Pixel) => (<div classList={{
         [styles.pixel]: true, 
@@ -21,6 +21,7 @@ const TetrisPage: Component = () => {
 
     onCleanup(() => {
       document.removeEventListener('keydown', onKeyDown);
+      pause();
     });
   
     return (

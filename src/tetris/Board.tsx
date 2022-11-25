@@ -44,10 +44,10 @@ export interface Board {
 }
 
 const createBoard = (): Board => {
-    const GAME_TICK = 1000;
+    const GAME_TICK = 1000 / 25;
     const BOARD_WIDTH = 10;
     const BOARD_HEIGHT = 20;
-    // const TILE_SPEED = 1000;    // drop 1 pixel every 1000ms
+    const TILE_SPEED = 1000;    // drop 1 pixel every 1000ms
 
     const convertBlock = (block: Array<Array<number>>): TBlock =>
         block.map((valArray) => valArray.map(val => val === 1
@@ -56,7 +56,7 @@ const createBoard = (): Board => {
     const createNewTile = (block: TBlock): Tile => ({
         block,
         top: 0,
-        left: 0,
+        left: Math.floor((BOARD_WIDTH - BlockFactory.getBlockWidth(block)) / 2),
         width: BlockFactory.getBlockWidth(block),
         height: block.length
     });
@@ -65,6 +65,7 @@ const createBoard = (): Board => {
         gameInterval: 0,
         isPaused: false,
         score: 0,
+        timeTillAdvance: TILE_SPEED
     };
 
     let tile = createNewTile(convertBlock(BlockFactory.getRandomBlock()));
@@ -85,7 +86,6 @@ const createBoard = (): Board => {
             case 'ArrowRight':
                 tile.possibleLeft = tile.left + tile.width < BOARD_WIDTH
                     ? tile.left + 1 : BOARD_WIDTH - tile.width;
-                console.log(tile.possibleLeft);
                 break;
             case 'ArrowLeft':
                 tile.possibleLeft = tile.left > 0 ? tile.left - 1 : 0;
@@ -107,46 +107,50 @@ const createBoard = (): Board => {
     }
 
     const mainLoop = () => {
+        console.log(tile);
+
         if (gameState.isPaused) {
             return;
         }
-        tile.possibleTop = tile.top + 1;
-        drawScreen();
-    }
-
-    const drawScreen = () => {
-        screen = clearFullLines(screen);
 
         // check for game over
-        if(tile.top === 0 && detectCollision(tile, screen)) {
+        if (tile.top === 0 && detectCollision(tile, screen)) {
             gameOver();
         }
 
-        // check left <-> right movement collision 
-        const possibleDXTile = {...tile};
-        possibleDXTile.left = possibleDXTile.possibleLeft !== undefined ? possibleDXTile.possibleLeft : possibleDXTile.left;
-        if(!detectCollision(possibleDXTile, screen)) {
-            tile.left = possibleDXTile.left;
-            console.log(`no collision to left/right`, tile);
+        // calc full tick
+        gameState.timeTillAdvance -= GAME_TICK;
+        if (gameState.timeTillAdvance <= 0) {
+            screen = clearFullLines(screen);
+            tile.possibleTop = tile.top + 1;
+            gameState.timeTillAdvance = TILE_SPEED;
         }
+        // tile.possibleTop = tile.top + 1;
 
-        tile.top = tile.possibleTop !== undefined ? tile.possibleTop : tile.top;
-
-        // detect if tile at the board end
-        if (tile.top + tile.height >= BOARD_HEIGHT) {
-            screen = mixinTileToScreen(tile, screen);
-            tile = createNewTile(convertBlock(BlockFactory.getRandomBlock()));
-        }
-        
         // detect down movement collision
-        const possibleDYTile = {...tile};
-        possibleDYTile.top += 1;
-        if(detectCollision(possibleDYTile, screen)) {
+        const deltaTile = { ...tile };
+        deltaTile.top += 1;
+        if (detectCollision(deltaTile, screen)) {
             screen = mixinTileToScreen(tile, screen);
             tile = createNewTile(convertBlock(BlockFactory.getRandomBlock()));
         }
 
         screen = markFullLines(screen);
+        drawScreen();
+    }
+
+    const drawScreen = () => {
+        // check left <-> right movement collision 
+        let deltaTile = { ...tile };
+        deltaTile.left = deltaTile.possibleLeft !== undefined ? deltaTile.possibleLeft : deltaTile.left;
+        if (!detectCollision(deltaTile, screen)) {
+            tile.left = deltaTile.left;
+        }
+        // check down movement collision
+        deltaTile.top = deltaTile.possibleTop !== undefined ? deltaTile.possibleTop : deltaTile.top;
+        if (!detectCollision(deltaTile, screen)) {
+            tile.top = deltaTile.top;
+        }
 
         setActualScreen(getActualScreen());
 
@@ -154,14 +158,20 @@ const createBoard = (): Board => {
         delete tile.possibleTop;
     }
 
+
+
+    const landTile = () => {
+
+    }
+
     const gameOver = () => {
         reset();
     }
 
     const markFullLines = (screen: TScreen): TScreen => {
-        return screen.map((row, index)=> {
-            const taken = row.pixels.filter(({type}) => type !== PixelType.EMPTY).length;
-            if(taken === BOARD_WIDTH) {
+        return screen.map((row, index) => {
+            const taken = row.pixels.filter(({ type }) => type !== PixelType.EMPTY).length;
+            if (taken === BOARD_WIDTH) {
                 const nrow = createRow(BOARD_WIDTH, PixelType.REMOVING);
                 return nrow;
             }
@@ -170,12 +180,12 @@ const createBoard = (): Board => {
     }
 
     const clearFullLines = (screen: TScreen): TScreen => {
-        const clearedScreen = screen.filter((row, index)=> {
-            const taken = row.pixels.filter(({type}) => type !== PixelType.EMPTY).length;
+        const clearedScreen = screen.filter((row, index) => {
+            const taken = row.pixels.filter(({ type }) => type !== PixelType.EMPTY).length;
             return taken !== BOARD_WIDTH;
         });
         const diff = screen.length - clearedScreen.length;
-        if(diff > 0) {
+        if (diff > 0) {
             gameState.score += 100 * diff * diff * 0.5;
             setScore(gameState.score);
             return [...Array<Row>(diff).fill(createRow()), ...clearedScreen];
@@ -186,13 +196,13 @@ const createBoard = (): Board => {
     const detectCollision = (tile: Tile, screen: TScreen): boolean => {
         const block = tile.block;
         let collision = false;
-        console.log(`detectCollision`, tile);
         for (let row = 0; row < block.length; row++) {
             for (let col = 0; col < block[row].length; col++) {
                 if (block[row][col].type != PixelType.EMPTY) {
-                    // console.log(row, tile.top, col, screen[row + tile.top].pixels[col + tile.left]);
-                    if(screen[row + tile.top].pixels[col + tile.left].type !== PixelType.EMPTY) {
-                        console.log(`collision`, tile);
+                    if (row + tile.top >= screen.length) {
+                        console.log(`bottom collision`, tile);
+                        collision = true;   // out of screen bottom
+                    } else if (screen[row + tile.top].pixels[col + tile.left].type !== PixelType.EMPTY) {
                         collision = true;
                     }
                 }
@@ -241,8 +251,6 @@ const createBoard = (): Board => {
     }
 
     reset();
-
-    console.log(screen!);
 
     return {
         width: BOARD_WIDTH,
