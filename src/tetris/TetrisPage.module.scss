@@ -8,7 +8,7 @@
     color: white;
     overflow: hidden;
     grid-template-columns: 1fr 1fr 1fr;
-  }
+}
 
 .tetris {
     display: grid;
@@ -16,7 +16,29 @@
     grid-auto-rows: 1fr;
     margin: auto;
     width: fit-content;
-    background: linear-gradient(0deg, rgb(26, 18, 48), #3f3f3f 100%) border-box;;
+    // background: linear-gradient(0deg, rgb(26, 18, 48), #3f3f3f 100%) border-box;
+    background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+	background-size: 400% 400%;
+	animation: gradient 15s ease infinite;
+}
+
+.gameOver, .paused {
+    display: grid;
+    position: absolute;
+    width: 100%;
+    pointer-events: none;
+    font-size: 30vh;
+    align-self: center;
+    align-content: center;
+}
+
+.help,
+.info {
+    font-size: 3vh;
+
+    button {
+        font-size: 3vh;
+    }
 }
 
 .pixel {
@@ -25,8 +47,8 @@
     border-left: 1px solid darkgray;
     border-right: 1px solid gray;
     border-bottom: 1px solid #444444;
-    min-width: 32px;
-    min-height: 32px;
+    min-width: 3vh;
+    min-height: 3vh;
 
     &.p0 {
         background-color: transparent;
@@ -44,16 +66,42 @@
         background-color: red;
         animation: pixels-out infinite 1s ease-out;
     }
+
+    &.animate-down {
+        animation: pixels-move forwards 1s linear;
+    }
+}
+
+@keyframes pixels-move {
+    0% {
+        transform: translateY(0);
+    }
+
+    100% {
+        transform: translateY(3vh);
+    }
 }
 
 @keyframes pixels-out {
     0% {
-      transform: scale(1) translateZ(0);
-      filter: opacity(1) blur(0px);
+        transform: scale(1) translateZ(0);
+        filter: opacity(1) blur(0px);
     }
 
     100% {
-      transform: scale(1) translateY(100px);
-      filter: opacity(0) blur(8px);
+        transform: scale(1) translateY(9vh);
+        filter: opacity(0) blur(1vh);
     }
-  }
+}
+
+@keyframes gradient {
+	0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
+}

@@ -41,7 +41,15 @@ export interface Board {
     reset: () => void;
     pause: () => void;
     start: () => void;
-    score: Accessor<number>;
+    gameState: Accessor<GameState>;
+}
+
+export interface GameState {
+    isPaused: boolean;
+    isGameOver: boolean;
+    score: number;
+    gameInterval?: number;
+    timeTillAdvance?: number;
 }
 
 const createBoard = (): Board => {
@@ -56,7 +64,7 @@ const createBoard = (): Board => {
         isGameOver: false,
         score: 0,
         timeTillAdvance: TILE_SPEED
-    };
+    } as GameState;
 
     const createTile = () => TilesUtils.randomColorTile(
         TilesUtils.centerTile(
@@ -71,10 +79,10 @@ const createBoard = (): Board => {
     let screen: TScreen;
 
     const [actualScreen, setActualScreen] = createSignal<TScreen>(createNewScreen());
-    const [score, setScore] = createSignal<number>(0);
+    const [getGameState, setGameState] = createSignal<GameState>(gameState, {equals: false});
 
     const onKeyDown = (e: KeyboardEvent) => {
-        if(gameState.isGameOver) {
+        if(gameState.isGameOver || (gameState.isPaused && e.key.toLowerCase() !== 'p')) {
             return;
         }
         switch (e.key) {
@@ -89,16 +97,12 @@ const createBoard = (): Board => {
                 tile.possibleLeft = tile.left > 0 ? tile.left - 1 : 0;
                 break;
             case 'ArrowUp':
-                // TODO Fix rotating in case tile WONT fit after rotation!
-                tile.block = BlockFactory.rotateBlockCW(tile.block) as TBlock;
-                tile.width = BlockFactory.getBlockWidth(tile.block);
-                tile.height = tile.block.length;
-                tile.left = tile.left + tile.width > BOARD_WIDTH
-                    ? BOARD_WIDTH - tile.width : tile.left;
+                tile = rotateIfPossible(tile);
                 break
             case 'p':
             case 'P':
                 gameState.isPaused = !gameState.isPaused;
+                setGameState(gameState);
             default:
                 break;
         }
@@ -115,7 +119,7 @@ const createBoard = (): Board => {
         let deltaTile = { ...tile };
         deltaTile.top += 1;
         if (tile.top === 0 && detectCollision(deltaTile, screen)) {
-            gameOver();
+            doGameOver();
             setActualScreen(getActualScreen());
             return;
         }
@@ -160,9 +164,21 @@ const createBoard = (): Board => {
         delete tile.possibleTop;
     }
 
-    const gameOver = () => {
+    const rotateIfPossible = (tile: Tile): Tile => {
+        const nTile = {...tile};
+        nTile.block = BlockFactory.rotateBlockCW(nTile.block) as TBlock;
+        nTile.width = BlockFactory.getBlockWidth(nTile.block);
+        nTile.height = nTile.block.length;
+        nTile.left = nTile.left + nTile.width > BOARD_WIDTH
+            ? BOARD_WIDTH - nTile.width : nTile.left;
+        const collision = detectCollision(nTile, screen);
+        return collision ? tile: nTile;
+    }
+
+    const doGameOver = () => {
         gameState.isGameOver = true;
-        pause();
+        // pause();
+        setGameState(gameState);
     }
 
     const markFullLines = (screen: TScreen): TScreen => {
@@ -184,7 +200,7 @@ const createBoard = (): Board => {
         const diff = screen.length - clearedScreen.length;
         if (diff > 0) {
             gameState.score += 100 * diff * diff * 0.5;
-            setScore(gameState.score);
+            setGameState(gameState);
             return [...Array<Row>(diff).fill(createRow()), ...clearedScreen];
         }
         return screen;
@@ -197,7 +213,6 @@ const createBoard = (): Board => {
             for (let col = 0; col < block[row].length; col++) {
                 if (block[row][col].type != PixelType.EMPTY) {
                     if (row + tile.top >= screen.length) {
-                        console.log(`bottom collision`, tile);
                         collision = true;   // out of screen bottom
                     } else if (screen[row + tile.top].pixels[col + tile.left].type !== PixelType.EMPTY) {
                         collision = true;
@@ -227,21 +242,23 @@ const createBoard = (): Board => {
         pause();
         clearInterval(gameState.gameInterval);
         gameState.score = 0;
-        setScore(0);
         screen = createNewScreen();
         tile = createTile();
         setActualScreen(getActualScreen());
         start();
+        setGameState(gameState);
     };
 
     const pause = () => {
         gameState.isPaused = true;
+        setGameState(gameState);
     };
 
     const start = () => {
         gameState.isGameOver = false;
         gameState.gameInterval = setInterval(mainLoop, GAME_TICK);
         gameState.isPaused = false;
+        setGameState(gameState);
     };
 
     const getActualScreen = (): Array<Row> => {
@@ -254,11 +271,11 @@ const createBoard = (): Board => {
         width: BOARD_WIDTH,
         height: BOARD_HEIGHT,
         screen: actualScreen,
-        score: score,
         onKeyDown,
         reset,
         pause,
-        start
+        start,
+        gameState: getGameState
     }
 }
 
