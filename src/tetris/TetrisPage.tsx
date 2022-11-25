@@ -4,7 +4,7 @@ import styles from './TetrisPage.module.scss';
 import createBoard, { Pixel, PixelType, Row } from "./Board";
 
 const TetrisPage: Component = () => {
-    const {width, height, screen, onKeyDown, score, pause } = createBoard();
+    const {width, height, screen, onKeyDown, score, pause, reset } = createBoard();
 
     const renderPixel = (pixel: Pixel) => (<div classList={{
         [styles.pixel]: true, 
@@ -23,17 +23,36 @@ const TetrisPage: Component = () => {
       document.removeEventListener('keydown', onKeyDown);
       pause();
     });
+
+    const newGame = () => {
+      reset();
+    }
   
     return (
       <div class={appStyles.App}>
         <header class={appStyles.header}>
-          ***WIP*** | score: {score} | level (speed): 0 | hiscore: 0 | <b>Movement: Arrow keys</b>
+          WorkInProgress | level (speed): 0 | hiscore: 0
         </header>
-        <div class={appStyles.content}>
+        <div class={styles.content}>
+            <div style={styles.info}>
+              <p><b>Score: {score}</b></p>
+              <button onclick={newGame}>New Game</button>
+            </div>
             <div class={styles.tetris} style={{
               "grid-template-columns": `repeat(${width - 1}, 1fr) minmax(0, 1fr)`
             }}>
                 {screen().map((row) => renderRow(row))}
+            </div>
+            <div style={styles.help}>
+              <p>
+                Movement: arrow keys - left/right/down
+              </p>
+              <p>
+                Rotate: arrow up
+              </p>
+              <p>
+                Pause: p
+              </p>
             </div>
         </div>
         <footer class={appStyles.footer}>

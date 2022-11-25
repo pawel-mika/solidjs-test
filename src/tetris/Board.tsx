@@ -1,6 +1,7 @@
 import { Accessor, createSignal } from "solid-js";
 import { JSX } from "solid-js/jsx-runtime";
 import BlockFactory from "./BlockFactory";
+import TilesUtils from "./TilesUtils";
 
 export enum PixelType {
     EMPTY,
@@ -44,31 +45,25 @@ export interface Board {
 }
 
 const createBoard = (): Board => {
-    const GAME_TICK = 1000 / 25;
+    const GAME_TICK = 1000; // / 25;
     const BOARD_WIDTH = 10;
     const BOARD_HEIGHT = 20;
     const TILE_SPEED = 1000;    // drop 1 pixel every 1000ms
 
-    const convertBlock = (block: Array<Array<number>>): TBlock =>
-        block.map((valArray) => valArray.map(val => val === 1
-            ? { type: PixelType.TAKEN } : { type: PixelType.EMPTY }));
-
-    const createNewTile = (block: TBlock): Tile => ({
-        block,
-        top: 0,
-        left: Math.floor((BOARD_WIDTH - BlockFactory.getBlockWidth(block)) / 2),
-        width: BlockFactory.getBlockWidth(block),
-        height: block.length
-    });
-
     const gameState = {
         gameInterval: 0,
         isPaused: false,
+        isGameOver: false,
         score: 0,
         timeTillAdvance: TILE_SPEED
     };
 
-    let tile = createNewTile(convertBlock(BlockFactory.getRandomBlock()));
+    const createTile = () => TilesUtils.randomColorTile(
+        TilesUtils.centerTile(
+            TilesUtils.createNewTile(
+                TilesUtils.convertBlock(BlockFactory.getRandomBlock())), BOARD_WIDTH));
+
+    let tile = createTile();
 
     const createRow = (width = BOARD_WIDTH, type = PixelType.EMPTY): Row => ({ pixels: Array<Pixel>(width).fill({ type }) });
     const createNewScreen = (height = BOARD_HEIGHT) => Array<Row>(height).fill(createRow());
@@ -79,6 +74,9 @@ const createBoard = (): Board => {
     const [score, setScore] = createSignal<number>(0);
 
     const onKeyDown = (e: KeyboardEvent) => {
+        if(gameState.isGameOver) {
+            return;
+        }
         switch (e.key) {
             case 'ArrowDown':
                 tile.possibleTop = tile.top + 1;
@@ -91,6 +89,7 @@ const createBoard = (): Board => {
                 tile.possibleLeft = tile.left > 0 ? tile.left - 1 : 0;
                 break;
             case 'ArrowUp':
+                // TODO Fix rotating in case tile WONT fit after rotation!
                 tile.block = BlockFactory.rotateBlockCW(tile.block) as TBlock;
                 tile.width = BlockFactory.getBlockWidth(tile.block);
                 tile.height = tile.block.length;
@@ -103,43 +102,49 @@ const createBoard = (): Board => {
             default:
                 break;
         }
-        drawScreen();
+        calculateDeltaTilePosition();
+        setActualScreen(getActualScreen());
     }
 
     const mainLoop = () => {
-        console.log(tile);
-
         if (gameState.isPaused) {
             return;
         }
 
         // check for game over
-        if (tile.top === 0 && detectCollision(tile, screen)) {
+        let deltaTile = { ...tile };
+        deltaTile.top += 1;
+        if (tile.top === 0 && detectCollision(deltaTile, screen)) {
             gameOver();
+            setActualScreen(getActualScreen());
+            return;
         }
+
+        screen = clearFullLines(screen);
 
         // calc full tick
-        gameState.timeTillAdvance -= GAME_TICK;
-        if (gameState.timeTillAdvance <= 0) {
-            screen = clearFullLines(screen);
-            tile.possibleTop = tile.top + 1;
-            gameState.timeTillAdvance = TILE_SPEED;
-        }
-        // tile.possibleTop = tile.top + 1;
+        // gameState.timeTillAdvance -= GAME_TICK;
+        // if (gameState.timeTillAdvance <= 0) {
+        //     screen = clearFullLines(screen);
+        //     tile.possibleTop = tile.top + 1;
+        //     gameState.timeTillAdvance = TILE_SPEED;
+        // }
+        tile.possibleTop = tile.top + 1;
 
         // detect down movement collision
-        const deltaTile = { ...tile };
+        deltaTile = { ...tile };
         deltaTile.top += 1;
         if (detectCollision(deltaTile, screen)) {
             screen = mixinTileToScreen(tile, screen);
-            tile = createNewTile(convertBlock(BlockFactory.getRandomBlock()));
+            tile = createTile();
         }
 
         screen = markFullLines(screen);
-        drawScreen();
+        calculateDeltaTilePosition();
+        setActualScreen(getActualScreen());
     }
 
-    const drawScreen = () => {
+    const calculateDeltaTilePosition = () => {
         // check left <-> right movement collision 
         let deltaTile = { ...tile };
         deltaTile.left = deltaTile.possibleLeft !== undefined ? deltaTile.possibleLeft : deltaTile.left;
@@ -151,21 +156,13 @@ const createBoard = (): Board => {
         if (!detectCollision(deltaTile, screen)) {
             tile.top = deltaTile.top;
         }
-
-        setActualScreen(getActualScreen());
-
         delete tile.possibleLeft;
         delete tile.possibleTop;
     }
 
-
-
-    const landTile = () => {
-
-    }
-
     const gameOver = () => {
-        reset();
+        gameState.isGameOver = true;
+        pause();
     }
 
     const markFullLines = (screen: TScreen): TScreen => {
@@ -232,7 +229,7 @@ const createBoard = (): Board => {
         gameState.score = 0;
         setScore(0);
         screen = createNewScreen();
-        tile = createNewTile(convertBlock(BlockFactory.getRandomBlock()));
+        tile = createTile();
         setActualScreen(getActualScreen());
         start();
     };
@@ -242,6 +239,7 @@ const createBoard = (): Board => {
     };
 
     const start = () => {
+        gameState.isGameOver = false;
         gameState.gameInterval = setInterval(mainLoop, GAME_TICK);
         gameState.isPaused = false;
     };

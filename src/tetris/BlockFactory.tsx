@@ -25,6 +25,11 @@ class BlockFactory {
             [1, 1],
             [1, 1]
         ]
+        // debug block
+        //  [
+        //     [1, 1, 1, 1, 1],
+        //     [1, 1, 1, 1, 1]
+        // ]
     )
 
     public getRandomBlock() {
