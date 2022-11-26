@@ -107,7 +107,7 @@ const createBoard = (): Board => {
                 break;
         }
         calculateDeltaTilePosition();
-        setActualScreen(getActualScreen());
+        updateScreen();
     }
 
     const mainLoop = () => {
@@ -120,7 +120,7 @@ const createBoard = (): Board => {
         deltaTile.top += 1;
         if (tile.top === 0 && detectCollision(deltaTile, screen)) {
             doGameOver();
-            setActualScreen(getActualScreen());
+            updateScreen()
             return;
         }
 
@@ -141,15 +141,16 @@ const createBoard = (): Board => {
         if (detectCollision(deltaTile, screen)) {
             screen = mixinTileToScreen(tile, screen);
             tile = createTile();
+            updateScreen(true);
         }
 
         screen = markFullLines(screen);
         calculateDeltaTilePosition();
-        setActualScreen(getActualScreen());
+        updateScreen();
     }
 
     const calculateDeltaTilePosition = () => {
-        // check left <-> right movement collision 
+        // check left <-> right movement collision
         let deltaTile = { ...tile };
         deltaTile.left = deltaTile.possibleLeft !== undefined ? deltaTile.possibleLeft : deltaTile.left;
         if (!detectCollision(deltaTile, screen)) {
@@ -244,7 +245,7 @@ const createBoard = (): Board => {
         gameState.score = 0;
         screen = createNewScreen();
         tile = createTile();
-        setActualScreen(getActualScreen());
+        updateScreen(true)
         start();
         setGameState(gameState);
     };
@@ -260,6 +261,14 @@ const createBoard = (): Board => {
         gameState.isPaused = false;
         setGameState(gameState);
     };
+
+    const updateScreen = (force: boolean = false) => {
+        const sameScreens = TilesUtils.screenComparator(screen, actualScreen());
+        if (!force && sameScreens) {
+            return;
+        }
+        setActualScreen(getActualScreen());
+    }
 
     const getActualScreen = (): Array<Row> => {
         return mixinTileToScreen(tile, screen);

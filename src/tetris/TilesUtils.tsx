@@ -1,5 +1,5 @@
 import BlockFactory from "./BlockFactory";
-import { PixelType, TBlock, Tile } from "./Board";
+import { Pixel, PixelType, Row, TBlock, Tile, TScreen } from "./Board";
 
 class TilesUtils {
     private static instance: TilesUtils;
@@ -8,7 +8,7 @@ class TilesUtils {
         block.map((valArray) => valArray.map(val => val === 1
             ? { type: PixelType.TAKEN } : { type: PixelType.EMPTY }));
 
-    public getRandomByte = () => Math.floor(Math.random() * 255).toString(16);
+    public getRandomByte = () => Math.floor(Math.random() * 254).toString(16);
     public getRandomColor = () => `#${this.getRandomByte()}${this.getRandomByte()}${this.getRandomByte()}`;
 
     public createNewTile = (block: TBlock): Tile => ({
@@ -29,6 +29,16 @@ class TilesUtils {
         const style = {'background-color': color};
         const block = tile.block.map((pixels) => pixels.map(pixel => ({...pixel, style})));
         return {...tile, block};
+    }
+
+    /**
+     * Compare two screens in terms of pixel.type only.
+     * Returns true if the same, false for different screens.
+     * @param screenA first screen to compare
+     * @param screenB second screen to compare
+     */
+    public screenComparator(screenA: TScreen, screenB: TScreen): boolean {
+        return screenA.find((row: Row, rIndex: number) => row.pixels.find((pixel: Pixel, pIndex:number) => pixel.type !== screenB[rIndex].pixels[pIndex].type)) === undefined;
     }
 
     private static createNewInstance(): TilesUtils {

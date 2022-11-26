@@ -7,14 +7,15 @@ import TetrisPage from './tetris/TetrisPage';
 const App: Component = () => {
 
   const navigate = useNavigate();
+  const baseUrl = import.meta.env.BASE_URL;
 
-  navigate(`${import.meta.env.BASE_URL}/tetris`);
+  navigate(baseUrl.concat('tetris'));
 
   return (
       <Routes>
-        <Route path={`${import.meta.env.BASE_URL}/gallery`} element={<GalleryPage />} />
-        <Route path={`${import.meta.env.BASE_URL}/tetris`} element={<TetrisPage />} />
-        <Route path='/test' element={<div> test test </div>} />
+        <Route path={baseUrl.concat('gallery')} element={<GalleryPage />} />
+        <Route path={baseUrl.concat('tetris')} element={<TetrisPage />} />
+        <Route path={baseUrl.concat('test')} element={<div> test test </div>} />
       </Routes>
   );
 };

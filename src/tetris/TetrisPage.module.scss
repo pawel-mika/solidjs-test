@@ -64,7 +64,7 @@
 
     &.p3 {
         background-color: red;
-        animation: pixels-out infinite 1s ease-out;
+        animation: pixels-out infinite 1s ease-in;
     }
 
     &.animate-down {
@@ -89,8 +89,8 @@
     }
 
     100% {
-        transform: scale(1) translateY(9vh);
-        filter: opacity(0) blur(1vh);
+        transform: scale(0.33) translateY(15vh);
+        filter: opacity(0) blur(2vh);
     }
 }
 
